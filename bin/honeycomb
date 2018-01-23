@@ -1,0 +1,71 @@
+#!/usr/bin/env node
+
+/**
+ * 注意: 这个脚本文件中，不要出现es6语法
+ */
+
+'use strict';
+
+var chalk = require('chalk');
+var program = require('commander');
+var pkg = require('../package.json');
+// var checkVersion = require('../lib/check_versions');
+var exec = require('../lib/exec');
+
+let logo =
+`
+      __                                                        __
+     / /_   ____   ____   ___   __  __ _____ ____   ____ ___   / /_
+    / __ \\ / __ \\ / __ \\ / _ \\ / / / // ___// __ \\ / __ \` __\\ / __ \\
+   / / / // /_/ // / / //  __// /_/ // /__ / /_/ // / / / / // /_/ /
+  /_/ /_/ \\____//_/ /_/ \\___/ \\__, / \\___/ \\____//_/ /_/ /_//_.___/
+                             /____/
+`;
+
+console.log(chalk.green(logo));  // eslint-disable-line
+
+function compareVersion(ver1, ver2) {
+  let arr1 = ver1.split('.');
+  let arr2 = ver2.split('.');
+
+  if (ver1 === ver2) {
+    return 0;
+  }
+
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return +arr1[i] > +arr2[i] ? 1 : -1;
+    }
+  }
+}
+
+/* es6 support see http://node.green/ */
+if (compareVersion(process.versions.node, '6.5.0') < 0) {
+  /*eslint-disable */
+  console.error(chalk.red('------------------------- ERROR ---------------------------'));
+  console.error(chalk.yellow('Your Node.js version is too old, please upgrade to >= 6.5.0'));
+  console.error(chalk.red('-----------------------------------------------------------'));
+  /*eslint-enable */
+  process.exit(1);
+}
+
+// checkVersion.checkCli();
+
+// 不存在~/.honeycomb.json时，写一个空对象进去
+exec('sh -c "if [ ! -f ~/.honeycomb.json ]; then echo {} > ~/.honeycomb.json; fi"', false);
+
+function printVersion() {
+  console.log(`${pkg.name}@${pkg.version}`);  // eslint-disable-line
+}
+
+program
+  .version(`${pkg.name}@${pkg.version}`)
+  .command('init [appName]', 'create an app with initial code.')
+  .command('start [appPath]', 'start the app.')
+  .command('package', 'pack the files into a tgz file.')
+  .command('minify', 'minify the js files.')
+  .command('app', 'echo appname, version, build')
+  .command('pwd [password]', 'generate a password hash')
+  .command('token', 'generate a random token')
+  .option('-v, --version', 'output the version number', printVersion)
+  .parse(process.argv);

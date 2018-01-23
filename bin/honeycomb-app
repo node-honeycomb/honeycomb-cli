@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+var path = require('path');
+var pkg = require(path.join(process.cwd(), './package.json'));
+
+console.log(pkg.name, pkg.version, pkg.build || 1);
