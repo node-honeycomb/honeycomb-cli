@@ -67,5 +67,6 @@ program
   .command('app', 'echo appname, version, build')
   .command('pwd [password]', 'generate a password hash')
   .command('token', 'generate a random token')
+  .command('config', 'get or set global config')
   .option('-v, --version', 'output the version number', printVersion)
   .parse(process.argv);
