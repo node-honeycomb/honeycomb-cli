@@ -1,0 +1,78 @@
+#!/usr/bin/env node
+
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const program = require('commander');
+const log = require('../lib/log');
+const run = require('../lib/exec');
+const genAutoRouter = require('../lib/gen_auto_router').genAutoRouter;
+
+program
+  .option('--env [value]', 'can be [test|dev|daily|pre|production] default is production')
+  /*.option('-p --private', '私有云打包')*/
+  .option('-m --minify', '混淆、压缩代码')
+  /*.option('-x --exclude', '排除不被压缩的目录')*/
+  .parse(process.argv);
+
+var env = program.env || 'production';
+
+if (env !== 'test' && env !== 'dev' && env !== 'daily' && env !== 'pre' && env !== 'production') {
+  log.error('env should be one of them: test, dev, daily, pre, production'); // eslint-disable-line
+  process.exit(1);
+}
+
+// 自动生成 auto_router.js 文件
+genAutoRouter({doc: true});
+// build app
+log.info('== start building app ==');
+
+if (program.minify) {
+  // 专有云打包，删除集团内部npm包依赖后再安装
+  let localConfig = require(path.join(process.env.HOME, '.honeycomb.json'));
+  let innerPackages = localConfig.innerPackages || ['@ali/buc-auth'];
+  let pkgJson = require(path.join(process.cwd(), 'package.json'));
+  innerPackages.forEach((pkg) => {
+    if (pkgJson.dependencies && pkgJson.dependencies[pkg]) {
+      delete pkgJson.dependencies[pkg];
+    }
+  });
+  fs.writeFileSync(path.join(process.cwd(), 'package.json'), JSON.stringify(pkgJson, null, 2));
+}
+
+run('make release env=' + env, true);
+run('sh -c "find out/release/config -type f | grep -e config_test.js -e config_dev.js -e config_daily.js -e config_pre.js -e config_production.js | xargs rm -f"', false);
+run('sh -c "cd out/release && if [ -f ./node_modules/.bin/framework_build ]; then ./node_modules/.bin/framework_build ' + env + '; fi"', 'call framework_build script');
+
+try {  // check config syntax
+  const config = path.join(process.cwd(), 'out/release', 'config/config.js');
+  if (fs.existsSync(config)) {
+    require(config);
+  }
+} catch (e) {
+  log.error(`You have an error in your config_${env}.js syntax:`, e);
+  process.exit(2);
+}
+
+// minify code
+if (program.minify) {
+  run('honeycomb minify --input out/release', 'minifying code');
+}
+
+var dir = process.cwd();
+var pkg = require(dir + '/package.json');
+var version = pkg.version;
+var buildNo = pkg.build || 1;
+var fileName = pkg.name + '_' + version + '_' + buildNo;
+
+run('rm -rf out/' + fileName, false);
+run('mv out/release out/' + fileName);
+
+run(
+  'cd out && tar -czf ' + fileName + '.tgz' +  ' ./' + fileName,
+  'compress code into tgz package:' + fileName + '.tgz');
+
+log.info('compress files finished. target file: ' + 'out/' + fileName + '.tgz');
+log.info('pack app success');
+
+process.exit(0);

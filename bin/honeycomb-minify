@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+
+'use strict';
+var path = require('path');
+var program = require('commander');
+
+program
+  // .option('-x --exclude [excludeDir]', 'do not minify the files in excludeDir', '')
+  .option('--input [dir]', 'minify input dir')
+  .parse(process.argv);
+
+console.log('Minifying code.');  // eslint-disable-line
+
+try {
+  var minify = require(path.join(__dirname, '../lib/minify.js'));
+  minify({input: program.input});
+} catch (e) {
+  console.error('Error: minify error: ', e.stack || e.message || e);
+  process.exit(1);
+}

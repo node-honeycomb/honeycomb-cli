@@ -1,0 +1,87 @@
+#!/usr/bin/env node
+
+'use strict';
+const chalk = require('chalk');
+const path = require('path');
+const _ = require('lodash');
+const program = require('commander');
+const cp = require('child_process');
+
+let localConfig = {
+  common: {},
+  apps: {}
+};
+try {
+  let p = path.join(process.env.HOME, '.honeycomb.json');
+  localConfig = _.merge({}, localConfig, require(p));
+} catch (e) {
+  console.error(e);
+  console.error(chalk.red('------------------------- ERROR ---------------------------'));
+  console.error(chalk.yellow('You should manually create `.honeycomb.json` in your HOME dir'));
+  console.error(chalk.yellow('Linux:   /home/$USER/.honeycomb.json'));
+  console.error(chalk.yellow('Mac OS:  /Users/$USER/.honeycomb.json'));
+  console.error(chalk.red('-----------------------------------------------------------'));
+  process.exit(1);
+}
+
+program
+  .option('-p --port [port]', '指定端口号')
+  .parse(process.argv);
+
+const dir = process.cwd();
+const appCfg = require(dir + '/package.json');
+const appName = appCfg.name;
+let appPrivateCfg = _.merge({}, localConfig.common, localConfig.apps[appName]);
+
+let child;
+
+let env = process.env;
+
+env.HC_APP_CONFIG = JSON.stringify({
+  serverRoot: dir,
+  appId: 'dev_app',
+  appRoot: process.cwd(),
+  file: process.cwd(),
+  config: _.merge({}, appPrivateCfg),
+  env: 'dev'
+});
+
+let port = program.port;
+
+function fork(p) {
+  let cc = cp.spawn(process.argv[0],
+    [
+      p,
+      '--color',
+      `${port}`
+    ],
+    {
+      cwd: process.cwd(),
+      env: env,
+      stdio: 'inherit'
+    }
+  );
+  cc.on('close', function (code, signal) {
+    if (signal === 'SIGINT') {
+      return;
+    }
+    // uncaughtException code = 7
+    if (code === 1 || code === 7) {
+      return process.exit(1);
+    }
+    fork(p);
+  });
+
+  child =  cc;
+}
+
+fork(path.join(__dirname, '../lib/start.js'));
+
+process.on('exit', function () {
+  child && child.kill('SIGHUP');
+});
+
+process.on('SIGINT', function () {
+  child.kill('SIGINT');
+  process.exit(0);
+});
