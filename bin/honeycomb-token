@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+'use strict';
+const randomatic = require('randomatic');
+
+function genToken(token) {
+  console.log('-------------');
+  console.log('token:', randomatic('*', 64));
+}
+
+genToken();

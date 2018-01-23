@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+
+'use strict';
+const crypto = require('crypto');
+const program = require('commander');
+
+program
+  .parse(process.argv);
+
+function sha256(str) {
+  if (typeof str !== 'string') {
+    throw new Error('sha256 only support string');
+  }
+  let hash = crypto.createHash('sha256');
+  hash.update(str);
+  return hash.digest('hex');
+}
+
+function genpwd(pwd) {
+  console.log('-------------');
+  console.log(' input:', pwd);
+  console.log('output:', sha256(pwd));
+}
+
+genpwd(program.args[0]);
