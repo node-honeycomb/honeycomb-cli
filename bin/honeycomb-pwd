@@ -22,4 +22,9 @@ function genpwd(pwd) {
   console.log('output:', sha256(pwd));
 }
 
+if (!program.args[0]) {
+  console.log('please input a password');
+  process.exit(1);
+}
+
 genpwd(program.args[0]);
