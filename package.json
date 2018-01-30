@@ -1,6 +1,6 @@
 {
   "name": "honeycomb-cli",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "honeycomb command line tools",
   "bin": {
     "honeycomb": "./bin/honeycomb",
