@@ -26,6 +26,7 @@ try {
 
 program
   .option('-p --port [port]', '指定端口号')
+  .option('-o --open [domain]', '打开浏览器窗口')
   .parse(process.argv);
 
 const dir = process.cwd();
@@ -47,13 +48,15 @@ env.HC_APP_CONFIG = JSON.stringify({
 });
 
 let port = program.port;
+let open = program.open;
 
-function fork(p) {
+function fork(p, ignoreOpen) {
   let cc = cp.spawn(process.argv[0],
     [
       p,
       '--color',
-      `${port}`
+      `${port}`,
+      ignoreOpen ? false : open
     ],
     {
       cwd: process.cwd(),
@@ -69,7 +72,7 @@ function fork(p) {
     if (code === 1 || code === 7) {
       return process.exit(1);
     }
-    fork(p);
+    fork(p, true);
   });
 
   child =  cc;
