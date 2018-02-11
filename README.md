@@ -2,7 +2,7 @@
 
 #### 安装
 ```
-tnpm install -g honeycomb-cli
+npm install -g honeycomb-cli
 ```
 
 #### 初始化应用（新建应用）
