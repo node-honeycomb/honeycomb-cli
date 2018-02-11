@@ -63,8 +63,7 @@ function fork(p, ignoreOpen) {
     args.unshift('--inspect');
   }
   let cc = cp.spawn(process.argv[0],
-    args
-    ,
+    args,
     {
       cwd: process.cwd(),
       env: env,
