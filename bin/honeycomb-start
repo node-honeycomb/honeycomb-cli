@@ -27,6 +27,7 @@ try {
 program
   .option('-p --port [port]', '指定端口号')
   .option('-o --open [domain]', '打开浏览器窗口')
+  .option('--inspect', 'start with inspect mod')
   .parse(process.argv);
 
 const dir = process.cwd();
@@ -50,14 +51,20 @@ env.HC_APP_CONFIG = JSON.stringify({
 let port = program.port;
 let open = program.open;
 
+
 function fork(p, ignoreOpen) {
+  let args = [
+    p,
+    '--color',
+    `${port}`,
+    ignoreOpen ? false : open
+  ];
+  if (program.inspect) {
+    args.unshift('--inspect');
+  }
   let cc = cp.spawn(process.argv[0],
-    [
-      p,
-      '--color',
-      `${port}`,
-      ignoreOpen ? false : open
-    ],
+    args
+    ,
     {
       cwd: process.cwd(),
       env: env,
