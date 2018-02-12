@@ -11,6 +11,7 @@ const postInit = require('../lib/post_init');
 program
   .option('-t, --template [value]', 'simple')
   .option('-u, --update', 'update an existing directory')
+  .option('-s, --scope [value]', 'specify the npm scope')
   .option('--registry [value]', 'specify the npm registry')
   .parse(process.argv);
 
@@ -18,6 +19,7 @@ program
  * hc-boilerplate-simple
  */
 let template = program.template || 'simple';
+let scope = program.scope || '';
 let registry = program.registry;
 let dir = program.args[0] || '.';
 
@@ -28,6 +30,9 @@ if (!program.update && fs.existsSync(dir)) {
     console.error(`path '${dir}' already exists and is not an empty directory`);
     process.exit(1);
   }
+}
+if (scope && !scope.startsWith('@')) {
+  scope = '@' + scope;
 }
 if (!registry) {
   const jsonPath = path.join(process.env.HOME, '.honeycomb.json');
@@ -50,13 +55,25 @@ if (!registry) {
  * tar -k will skip exist files
  * --strip-components 1 will remove a leading path
  */
-run(`sh -c '\
-  tar=$(npm pack hc-boilerplate-${template} --registry ${registry});\
-  echo downloaded $tar;\
-  mkdir -p ${dir};\
-  tar -xzkf $tar --strip-components 1 -C ${dir};\
-  rm $tar;'
-`);
+try {
+  run(`sh -c '\
+    tar=$(npm pack ${scope ? scope + '/' : ''}hc-boilerplate-${template} --registry ${registry});\
+    [ -z $tar ] && exit 1;\
+    echo downloaded $tar;\
+    mkdir -p ${dir};\
+    tar -xzkf $tar --strip-components 1 -C ${dir};\
+    rm $tar;'
+  `);
+} catch (e) {
+  if (e.status === 1) {
+    log.error(`package ${scope ? scope + '/' : ''}hc-boilerplate-${template} not exist`);
+  } else {
+    log.error(e.stack || e);
+  }
+  log.error('abort');
+  process.exit(1);
+}
+
 postInit(dir);
 log.info('init success');
 
