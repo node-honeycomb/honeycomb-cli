@@ -40,7 +40,12 @@ if (program.minify) {
   fs.writeFileSync(path.join(process.cwd(), 'package.json'), JSON.stringify(pkgJson, null, 2));
 }
 
-run('make release env=' + env, true);
+
+if (fs.existsSync(path.join(process.cwd(), 'Makefile'))) {
+  run('make release env=' + env, true);
+} else {
+  run('npm run release -- ' + env, true);
+}
 run('sh -c "find out/release/config -type f | grep -e config_test.js -e config_dev.js -e config_daily.js -e config_pre.js -e config_production.js | xargs rm -f"', false);
 run('sh -c "cd out/release && if [ -f ./node_modules/.bin/framework_build ]; then ./node_modules/.bin/framework_build ' + env + '; fi"', 'call framework_build script');
 
