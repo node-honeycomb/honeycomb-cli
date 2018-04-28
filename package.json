@@ -1,6 +1,6 @@
 {
   "name": "honeycomb-cli",
-  "version": "0.2.12",
+  "version": "0.2.13",
   "description": "honeycomb command line tools",
   "bin": {
     "honeycomb": "./bin/honeycomb",
@@ -8,17 +8,17 @@
   },
   "preferGlobal": true,
   "dependencies": {
-    "api-annotation": "1.0.0-alpha.11",
+    "api-annotation": "1.0.0-beta.2",
     "chalk": "~2.1.0",
     "commander": "~2.11.0",
-    "esminify": "~3.0.0",
+    "esminify": "3.0.5",
     "filewatcher": "^3.0.1",
     "ip": "~1.1.5",
     "litelog": "^2.0.7",
     "lodash": "~4.17.4",
     "randomatic": "^3.0.0",
     "request": "~2.81.0",
-    "xfs": "^0.2.1",
+    "xfs": "^0.2.3",
     "opn": "5.2.0"
   },
   "devDependencies": {},
