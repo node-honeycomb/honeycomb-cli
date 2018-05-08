@@ -58,7 +58,7 @@ if (!registry) {
 try {
   run(`sh -c '\
     tar=$(npm pack ${scope ? scope + '/' : ''}hc-boilerplate-${template} --registry ${registry});\
-    [ -z $tar ] && exit 1;\
+    if [ ! -f $tar ];then exit 1; fi;\
     echo downloaded $tar;\
     mkdir -p ${dir};\
     tar -xzkf $tar --strip-components 1 -C ${dir};\
