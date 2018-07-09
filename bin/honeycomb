@@ -62,7 +62,7 @@ program
   .version(`${pkg.name}@${pkg.version}`)
   .command('init [appName]', 'create an app with initial code.')
   .command('start [appPath]', 'start the app.')
-  .command('package', 'pack the files into a tgz file.')
+  .command('package', 'pack the files into a tgz file.').alias('pack')
   .command('minify', 'minify the js files.')
   .command('app', 'echo appname, version, build')
   .command('pwd [password]', 'generate a password hash')
