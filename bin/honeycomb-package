@@ -1,18 +1,22 @@
 #!/usr/bin/env node
 
-'use strict';
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const program = require('commander');
+const tar = require('tar');
+const co = require('co');
+const _ = require('lodash');
+
 const log = require('../lib/log');
 const run = require('../lib/exec');
 const genAutoRouter = require('../lib/gen_auto_router').genAutoRouter;
+let release = require('../lib/release');
 
 program
   .option('--env [value]', 'can be [test|dev|daily|pre|production] default is production')
-  /*.option('-p --private', '私有云打包')*/
+  /* .option('-p --private', '私有云打包')*/
   .option('-m --minify', '混淆、压缩代码')
-  /*.option('-x --exclude', '排除不被压缩的目录')*/
+  /* .option('-x --exclude', '排除不被压缩的目录')*/
   .parse(process.argv);
 
 var env = program.env || 'production';
@@ -40,44 +44,77 @@ if (program.minify) {
   fs.writeFileSync(path.join(process.cwd(), 'package.json'), JSON.stringify(pkgJson, null, 2));
 }
 
-
-if (fs.existsSync(path.join(process.cwd(), 'Makefile'))) {
-  run('make release env=' + env, true);
-} else {
-  run('npm run release -- ' + env, true);
-}
-run('sh -c "find out/release/config -type f | grep -e config_test.js -e config_dev.js -e config_daily.js -e config_pre.js -e config_production.js | xargs rm -f"', false);
-run('sh -c "cd out/release && if [ -f ./node_modules/.bin/framework_build ]; then ./node_modules/.bin/framework_build ' + env + '; fi"', 'call framework_build script');
-
-try {  // check config syntax
-  const config = path.join(process.cwd(), 'out/release', 'config/config.js');
-  if (fs.existsSync(config)) {
-    require(config);
+co(function *(){
+  let pkgJson = require(path.join(process.cwd(), 'package.json'));
+  // release 文件检查
+  if(_.isObject(release)){
+    release = Object.keys(release).map(key => release[key]);
   }
-} catch (e) {
-  log.error(`You have an error in your config_${env}.js syntax:`, e);
-  process.exit(2);
-}
 
-// minify code
-if (program.minify) {
-  run('honeycomb minify --input out/release', 'minifying code');
-}
+  if(!_.isArray(release)){
+    throw Error('release.js暴露的对象不是Object或Array');
+  }
 
-var dir = process.cwd();
-var pkg = require(dir + '/package.json');
-var version = pkg.version;
-var buildNo = pkg.build || 1;
-var fileName = pkg.name + '_' + version + '_' + buildNo;
+  for(let fn of release){
+    if(!_.isFunction(fn)){
+      throw Error('Arrary中的对象不是Function');
+    }
+    yield fn({ env: env }, process.cwd(), run, log);
+  }
 
-run('rm -rf out/' + fileName, false);
-run('mv out/release out/' + fileName);
+  log.info('last part');
 
-run(
-  'cd out && tar -czf ' + fileName + '.tgz' +  ' ./' + fileName,
-  'compress code into tgz package:' + fileName + '.tgz');
+  log.info('remove useless file');
+  // 删除多余的config文件
+  ['test', 'dev', 'daily', 'pre'].forEach(suffix => {
+    const pathname = path.join(process.cwd(), 'out', 'release', 'config', `config_${suffix}.js`);
+    fs.removeSync(pathname);
+  });
 
-log.info('compress files finished. target file: ' + 'out/' + fileName + '.tgz');
-log.info('pack app success');
+  try {  // check config syntax
+    const config = path.join(process.cwd(), 'out', 'release', 'config', 'config.js');
+    if (fs.existsSync(config)) {
+      require(config);
+    }
+  } catch (e) {
+    log.error(`You have an error in your config_${env}.js syntax:`, e);
+    process.exit(2);
+  }
 
-process.exit(0);
+  // minify code
+  if (program.minify) {
+    run(`honeycomb minify --input ${path.join('out', 'release')}`, 'minifying code');
+  }
+
+  var dir = process.cwd();
+  var pkg = require(path.join(dir, 'package.json'));
+  var version = pkg.version;
+  var buildNo = pkg.build || 1;
+  var fileName = pkg.name + '_' + version + '_' + buildNo;
+
+  log.info('move file to ', fileName);
+  // 转移文件
+  const outDir = path.join(process.cwd(), 'out');
+  fs.removeSync(path.join(outDir, fileName));
+  fs.renameSync(path.join(outDir, 'release'), path.join(outDir, fileName));
+  log.info('begin to tgz file');
+  tar.c(
+    {
+      gzip: true,
+      file: path.join(outDir, fileName + '.tgz'),
+      strip: 1,
+      cwd: outDir
+    },
+    [
+      fileName
+    ]
+  ).then(() => {
+    log.info('compress files finished. target file: ' + 'out/' + fileName + '.tgz');
+    log.info('pack app success');
+    process.exit(0);
+  });
+
+}).catch(e => {
+  log.error(e);
+  process.exit(1);
+});
