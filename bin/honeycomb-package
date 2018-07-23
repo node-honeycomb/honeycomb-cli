@@ -10,7 +10,7 @@ const _ = require('lodash');
 const log = require('../lib/log');
 const run = require('../lib/exec');
 const genAutoRouter = require('../lib/gen_auto_router').genAutoRouter;
-let release = require('../lib/release');
+
 
 program
   .option('--env [value]', 'can be [test|dev|daily|pre|production] default is production')
@@ -44,22 +44,44 @@ if (program.minify) {
   fs.writeFileSync(path.join(process.cwd(), 'package.json'), JSON.stringify(pkgJson, null, 2));
 }
 
-co(function *(){
-  let pkgJson = require(path.join(process.cwd(), 'package.json'));
-  // release 文件检查
-  if(_.isObject(release)){
-    release = Object.keys(release).map(key => release[key]);
-  }
-
-  if(!_.isArray(release)){
-    throw Error('release.js暴露的对象不是Object或Array');
-  }
-
-  for(let fn of release){
-    if(!_.isFunction(fn)){
-      throw Error('Arrary中的对象不是Function');
+co(function* () {
+  // 检查是否存在makefile
+  const makefilePath = [
+    path.join(process.cwd(), 'Makefile'),
+    path.join(process.cwd(), 'makefile'),
+  ];
+  let makeExsit = false;
+  for (const mfp of makefilePath) {
+    if (fs.existsSync(mfp)) {
+      makeExsit = true;
     }
-    yield fn({ env: env }, process.cwd(), run, log);
+  }
+
+  if (makeExsit) {
+    run(`cd ${process.cwd()} && make release env=${env}`, 'using makefile to build');
+  } else {
+    // 检查是否存在bin/release.js
+    const releasePath = path.join(process.cwd(), 'bin/release.js');
+    if (!fs.existsSync(releasePath)) {
+      yield fs.copy(path.join(__dirname, '..', 'lib', 'release.js'), releasePath);
+    }
+
+    let release = require(releasePath);
+    // release 文件检查
+    if (_.isObject(release)) {
+      release = Object.keys(release).map(key => release[key]);
+    }
+
+    if (!_.isArray(release)) {
+      throw Error('release.js暴露的对象不是Object或Array');
+    }
+
+    for (let fn of release) {
+      if (!_.isFunction(fn)) {
+        throw Error('Arrary中的对象不是Function');
+      }
+      yield fn({env: env}, process.cwd(), {run, log, fs, co});
+    }
   }
 
   log.info('last part');
@@ -98,7 +120,7 @@ co(function *(){
   fs.removeSync(path.join(outDir, fileName));
   fs.renameSync(path.join(outDir, 'release'), path.join(outDir, fileName));
   log.info('begin to tgz file');
-  tar.c(
+  yield tar.c(
     {
       gzip: true,
       file: path.join(outDir, fileName + '.tgz'),
@@ -108,12 +130,10 @@ co(function *(){
     [
       fileName
     ]
-  ).then(() => {
-    log.info('compress files finished. target file: ' + 'out/' + fileName + '.tgz');
-    log.info('pack app success');
-    process.exit(0);
-  });
-
+  );
+  log.info('compress files finished. target file: ' + 'out/' + fileName + '.tgz');
+  log.info('pack app success');
+  process.exit(0);
 }).catch(e => {
   log.error(e);
   process.exit(1);

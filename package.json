@@ -23,7 +23,12 @@
     "tar": "^4.4.4",
     "xfs": "^0.2.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "babel-eslint": "^8.2.6",
+    "eslint": "^5.2.0",
+    "eslint-config-aliyun": "^2.0.2",
+    "eslint-plugin-react": "^7.10.0"
+  },
   "repository": {
     "type": "git",
     "url": ""
