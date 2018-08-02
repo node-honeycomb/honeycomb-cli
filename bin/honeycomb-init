@@ -3,10 +3,13 @@
 
 const program = require('commander');
 const log = require('../lib/log');
-const run = require('../lib/exec');
-const fs = require('fs');
+const co = require('co');
+const util = require('util');
+const fs = require('fs-extra');
 const path = require('path');
 const postInit = require('../lib/post_init');
+const tar = require('tar');
+const npm = require('npm');
 
 program
   .option('-t, --template [value]', 'simple')
@@ -55,26 +58,28 @@ if (!registry) {
  * tar -k will skip exist files
  * --strip-components 1 will remove a leading path
  */
-try {
-  run(`sh -c '\
-    tar=$(npm pack ${scope ? scope + '/' : ''}hc-boilerplate-${template} --registry ${registry});\
-    if [ ! -f $tar ];then exit 1; fi;\
-    echo downloaded $tar;\
-    mkdir -p ${dir};\
-    tar -xzkf $tar --strip-components 1 -C ${dir};\
-    rm $tar;'
-  `);
-} catch (e) {
-  if (e.status === 1) {
-    log.error(`package ${scope ? scope + '/' : ''}hc-boilerplate-${template} not exist`);
-  } else {
-    log.error(e.stack || e);
-  }
-  log.error('abort');
+
+const npmLoad = util.promisify(npm.load);
+const npmPack = util.promisify(npm.pack);
+const unLink = util.promisify(fs.unlink);
+co(function* () {
+  yield npmLoad({registry});
+  console.log('beigin to download tarball');
+  const info = yield npmPack(`${scope ? scope + '/' : ''}hc-boilerplate-${template}`);
+  const filename = info[0].filename;
+  yield fs.mkdirp(dir);
+  yield tar.x({
+    strip: 1,
+    file: filename,
+    C: dir
+  });
+  yield unLink(filename);
+  postInit(dir);
+  log.info('init success');
+  process.exit(0);
+}).catch(e => {
+  console.log('init fail', e.message);
   process.exit(1);
-}
+});
 
-postInit(dir);
-log.info('init success');
 
-process.exit(0);

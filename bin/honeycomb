@@ -9,8 +9,10 @@
 var chalk = require('chalk');
 var program = require('commander');
 var pkg = require('../package.json');
+var fs = require('fs');
+var os = require('os');
+var path = require('path');
 // var checkVersion = require('../lib/check_versions');
-var exec = require('../lib/exec');
 
 let logo =
 `
@@ -45,14 +47,17 @@ if (compareVersion(process.versions.node, '6.5.0') < 0) {
   console.error(chalk.red('------------------------- ERROR ---------------------------'));
   console.error(chalk.yellow('Your Node.js version is too old, please upgrade to >= 6.5.0'));
   console.error(chalk.red('-----------------------------------------------------------'));
-  /*eslint-enable */
+  /* eslint-enable */
   process.exit(1);
 }
 
 // checkVersion.checkCli();
 
 // 不存在~/.honeycomb.json时，写一个空对象进去
-exec('sh -c "if [ ! -f ~/.honeycomb.json ]; then echo {} > ~/.honeycomb.json; fi"', false);
+const json = path.join(os.homedir(), '.honeycomb.json');
+if (!fs.existsSync(json)) {
+  fs.writeFileSync(json, JSON.stringify({}, null, 2));
+}
 
 function printVersion() {
   console.log(`${pkg.name}@${pkg.version}`);  // eslint-disable-line
