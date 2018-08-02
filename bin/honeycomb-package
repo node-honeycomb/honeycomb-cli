@@ -31,11 +31,12 @@ genAutoRouter({doc: true});
 // build app
 log.info('== start building app ==');
 
+let pkgJson = require(path.join(process.cwd(), 'package.json'));
+
 if (program.minify) {
   // 专有云打包，删除集团内部npm包依赖后再安装
   let localConfig = require(path.join(process.env.HOME, '.honeycomb.json'));
   let innerPackages = localConfig.innerPackages || [];
-  let pkgJson = require(path.join(process.cwd(), 'package.json'));
   innerPackages.forEach((pkg) => {
     if (pkgJson.dependencies && pkgJson.dependencies[pkg]) {
       delete pkgJson.dependencies[pkg];
@@ -57,7 +58,18 @@ co(function* () {
     }
   }
 
-  if (makeExsit) {
+  /**
+   * 通过package['pack-mode] 或 package['package-mode'] 来强制控制打包模式
+   */
+  const packMode = pkgJson['pack-mode'] || pkgJson['package-mode'];
+  let useMake = true;
+  if (packMode === 'node') {
+    useMake = false;
+  } else if (packMode === 'make') {
+    useMake = true;
+  }
+
+  if (makeExsit && useMake) {
     run(`cd ${process.cwd()} && make release env=${env}`, 'using makefile to build');
   } else {
     // 检查是否存在bin/release.js
