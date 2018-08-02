@@ -6,13 +6,14 @@ const path = require('path');
 const _ = require('lodash');
 const program = require('commander');
 const cp = require('child_process');
+const os = require('os');
 
 let localConfig = {
   common: {},
   apps: {}
 };
 try {
-  let p = path.join(process.env.HOME, '.honeycomb.json');
+  let p = path.join(os.homedir(), '.honeycomb.json');
   localConfig = _.merge({}, localConfig, require(p));
 } catch (e) {
   console.error(e);

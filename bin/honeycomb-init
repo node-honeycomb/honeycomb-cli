@@ -10,6 +10,7 @@ const path = require('path');
 const postInit = require('../lib/post_init');
 const tar = require('tar');
 const npm = require('npm');
+const os = require('os');
 
 program
   .option('-t, --template [value]', 'simple')
@@ -38,7 +39,7 @@ if (scope && !scope.startsWith('@')) {
   scope = '@' + scope;
 }
 if (!registry) {
-  const jsonPath = path.join(process.env.HOME, '.honeycomb.json');
+  const jsonPath = path.join(os.homedir(), '.honeycomb.json');
 
   if (fs.existsSync(jsonPath)) {
     try {

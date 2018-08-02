@@ -3,7 +3,8 @@
 const program = require('commander');
 const path = require('path');
 const fs = require('fs');
-const configPath = path.join(process.env.HOME, '.honeycomb.json');
+const os = require('os');
+const configPath = path.join(os.homedir(), '.honeycomb.json');
 
 let globalConfig;
 
