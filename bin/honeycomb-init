@@ -65,7 +65,7 @@ const npmPack = util.promisify(npm.pack);
 const unLink = util.promisify(fs.unlink);
 co(function* () {
   yield npmLoad({registry});
-  console.log('beigin to download tarball');
+  console.log('begin to download tarball');
   const info = yield npmPack(`${scope ? scope + '/' : ''}hc-boilerplate-${template}`);
   const filename = info[0].filename;
   yield fs.mkdirp(dir);
