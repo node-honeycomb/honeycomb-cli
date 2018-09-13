@@ -7,6 +7,7 @@ const tar = require('tar');
 const co = require('co');
 const _ = require('lodash');
 const chalk = require('chalk');
+const os = require('os');
 
 const log = require('../lib/log');
 const run = require('../lib/exec');
@@ -36,7 +37,7 @@ let pkgJson = require(path.join(process.cwd(), 'package.json'));
 
 if (program.minify) {
   // 专有云打包，删除集团内部npm包依赖后再安装
-  let localConfig = require(path.join(process.env.HOME, '.honeycomb.json'));
+  let localConfig = require(path.join(os.homedir(), '.honeycomb.json'));
   let innerPackages = localConfig.innerPackages || [];
   innerPackages.forEach((pkg) => {
     if (pkgJson.dependencies && pkgJson.dependencies[pkg]) {
