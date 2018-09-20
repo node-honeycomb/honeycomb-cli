@@ -2,4 +2,5 @@
 var path = require('path');
 var pkg = require(path.join(process.cwd(), './package.json'));
 
+/*eslint-disable */
 console.log(pkg.name, pkg.version, pkg.build || 1);

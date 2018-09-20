@@ -17,13 +17,15 @@ function sha256(str) {
 }
 
 function genpwd(pwd) {
+  /*eslint-disable */
   console.log('-------------');
   console.log(' input:', pwd);
   console.log('output:', sha256(pwd));
+  /* eslint-enable */
 }
 
 if (!program.args[0]) {
-  console.log('please input a password');
+  console.log('please input a password'); // eslint-disable-line
   process.exit(1);
 }
 

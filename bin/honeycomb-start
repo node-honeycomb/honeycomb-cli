@@ -16,12 +16,14 @@ try {
   let p = path.join(os.homedir(), '.honeycomb.json');
   localConfig = _.merge({}, localConfig, require(p));
 } catch (e) {
+  /*eslint-disable */
   console.error(e);
   console.error(chalk.red('------------------------- ERROR ---------------------------'));
   console.error(chalk.yellow('You should manually create `.honeycomb.json` in your HOME dir'));
   console.error(chalk.yellow('Linux:   /home/$USER/.honeycomb.json'));
   console.error(chalk.yellow('Mac OS:  /Users/$USER/.honeycomb.json'));
   console.error(chalk.red('-----------------------------------------------------------'));
+  /* eslint-enable */
   process.exit(1);
 }
 

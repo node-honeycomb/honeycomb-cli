@@ -42,10 +42,10 @@ function compareVersion(ver1, ver2) {
 }
 
 /* es6 support see http://node.green/ */
-if (compareVersion(process.versions.node, '6.5.0') < 0) {
+if (compareVersion(process.versions.node, '8.0.0') < 0) {
   /*eslint-disable */
   console.error(chalk.red('------------------------- ERROR ---------------------------'));
-  console.error(chalk.yellow('Your Node.js version is too old, please upgrade to >= 6.5.0'));
+  console.error(chalk.yellow('Your Node.js version is too old, please upgrade to >= 8.0.0'));
   console.error(chalk.red('-----------------------------------------------------------'));
   /* eslint-enable */
   process.exit(1);

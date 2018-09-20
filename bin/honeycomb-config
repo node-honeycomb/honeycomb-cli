@@ -15,11 +15,11 @@ try {
   globalConfig = require(configPath);
 } catch (e) {
   if (e.code === 'MODULE_NOT_FOUND') {
-    console.error('file not found:', configPath);
+    console.error('file not found:', configPath); //eslint-disable-line
   } else if (e.name === 'SyntaxError') {
-    console.error(configPath, 'must be actual JSON');
+    console.error(configPath, 'must be actual JSON'); //eslint-disable-line
   } else {
-    console.error(e);
+    console.error(e); //eslint-disable-line
   }
   process.exit(1);
 }
@@ -33,10 +33,10 @@ if (program.args[0] && program.args[1]) {
 function get(key) {
   switch (key) {
     case 'registry':
-      console.log(globalConfig.registry || '');
+      console.log(globalConfig.registry || ''); //eslint-disable-line
       break;
     default:
-      console.log(`no config with key '${key}'`);
+      console.log(`no config with key '${key}'`); //eslint-disable-line
   }
 }
 
@@ -47,6 +47,6 @@ function set(key, value) {
       fs.writeFileSync(configPath, JSON.stringify(globalConfig, null, 2));
       break;
     default:
-      console.log(`set key '${key}' not supported`);
+      console.log(`set key '${key}' not supported`); //eslint-disable-line
   }
 }
