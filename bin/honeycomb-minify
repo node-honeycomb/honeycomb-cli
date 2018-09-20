@@ -15,6 +15,6 @@ try {
   var minify = require(path.join(__dirname, '../lib/minify.js'));
   minify({input: program.input});
 } catch (e) {
-  console.error('Error: minify error: ', e.stack || e.message || e);
+  console.error('Error: minify error: ', e.stack || e.message || e); //eslint-disable-line
   process.exit(1);
 }

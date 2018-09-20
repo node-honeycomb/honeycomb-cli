@@ -3,7 +3,6 @@
 
 const program = require('commander');
 const log = require('../lib/log');
-const co = require('co');
 const util = require('util');
 const fs = require('fs-extra');
 const path = require('path');
@@ -31,7 +30,7 @@ if (!program.update && fs.existsSync(dir)) {
   let content = fs.readdirSync(dir);
 
   if (content.length) {
-    console.error(`path '${dir}' already exists and is not an empty directory`);
+    console.error(`path '${dir}' already exists and is not an empty directory`); //eslint-disable-line
     process.exit(1);
   }
 }
@@ -63,24 +62,25 @@ if (!registry) {
 const npmLoad = util.promisify(npm.load);
 const npmPack = util.promisify(npm.pack);
 const unLink = util.promisify(fs.unlink);
-co(function* () {
-  yield npmLoad({registry});
-  console.log('begin to download tarball');
-  const info = yield npmPack(`${scope ? scope + '/' : ''}hc-boilerplate-${template}`);
+const init = async () => {
+  await npmLoad({registry});
+  console.log('begin to download tarball'); //eslint-disable-line
+  const info = await npmPack(`${scope ? scope + '/' : ''}hc-boilerplate-${template}`);
   const filename = info[0].filename;
-  yield fs.mkdirp(dir);
-  yield tar.x({
+  await fs.mkdirp(dir);
+  await tar.x({
     strip: 1,
     file: filename,
     C: dir
   });
-  yield unLink(filename);
+  await unLink(filename);
   postInit(dir);
   log.info('init success');
   process.exit(0);
-}).catch(e => {
-  console.log('init fail', e.message);
+};
+
+init().catch(e => {
+  console.log('init fail', e.message); //eslint-disable-line
   process.exit(1);
 });
-
 

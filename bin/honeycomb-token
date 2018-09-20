@@ -4,8 +4,10 @@
 const randomatic = require('randomatic');
 
 function genToken(token) {
+  /*eslint-disable */
   console.log('-------------');
   console.log('token:', randomatic('*', 64));
+  /* eslint-enable */
 }
 
 genToken();

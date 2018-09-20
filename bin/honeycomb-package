@@ -4,7 +4,6 @@ const fs = require('fs-extra');
 const path = require('path');
 const program = require('commander');
 const tar = require('tar');
-const co = require('co');
 const _ = require('lodash');
 const chalk = require('chalk');
 const os = require('os');
@@ -47,7 +46,7 @@ if (program.minify) {
   fs.writeFileSync(path.join(process.cwd(), 'package.json'), JSON.stringify(pkgJson, null, 2));
 }
 
-co(function* () {
+const pack = async () => {
   // 检查是否存在makefile
   const makefilePath = [
     path.join(process.cwd(), 'Makefile'),
@@ -77,7 +76,7 @@ co(function* () {
     // 检查是否存在bin/release.js
     const releasePath = path.join(process.cwd(), 'bin/release.js');
     if (!fs.existsSync(releasePath)) {
-      yield fs.copy(path.join(__dirname, '..', 'lib', 'release.js'), releasePath);
+      await fs.copy(path.join(__dirname, '..', 'lib', 'release.js'), releasePath);
     }
 
     let release = require(releasePath);
@@ -94,7 +93,7 @@ co(function* () {
       if (!_.isFunction(fn)) {
         throw Error('Arrary中的对象不是Function');
       }
-      yield fn({env: env}, process.cwd(), {run, log, fs, co});
+      await fn({env: env}, process.cwd(), {run, log, fs});
     }
   }
 
@@ -134,7 +133,7 @@ co(function* () {
   fs.removeSync(path.join(outDir, fileName));
   fs.renameSync(path.join(outDir, 'release'), path.join(outDir, fileName));
   log.info('begin to tgz file');
-  yield tar.c(
+  await tar.c(
     {
       gzip: true,
       file: path.join(outDir, fileName + '.tgz'),
@@ -148,12 +147,16 @@ co(function* () {
   log.info('compress files finished. target file: ' + 'out/' + fileName + '.tgz');
   log.info('pack app success');
   process.exit(0);
-}).catch(e => {
-  log.error(e);
+};
+
+pack().catch(e => {
+  log.error(e.stack || e.message || e);
+  /*eslint-disable */
   console.error(chalk.green('------------------------- TIPS ---------------------------'));
   console.error(chalk.yellow(`打包遇到问题?
 推荐访问honeycomb官方文档查看常见问题解决方案:
 https://www.yuque.com/honeycomb/honeycomb/faq`));
   console.error(chalk.green('-----------------------------------------------------------'));
+  /* eslint-enable */
   process.exit(1);
 });
