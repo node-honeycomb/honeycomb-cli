@@ -1,5 +1,7 @@
 # honeycomb-cli
 
+English | [中文](https://github.com/node-honeycomb/honeycomb-cli/wiki/%E4%B8%AD%E6%96%87%E7%89%88%E8%AF%B4%E6%98%8E)
+
 ## Installation
 
 ```
