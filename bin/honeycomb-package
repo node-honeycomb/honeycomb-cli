@@ -106,6 +106,8 @@ const pack = async () => {
     fs.removeSync(pathname);
   });
 
+  run('sh -c "cd out/release && if [ -f ./node_modules/.bin/framework_build ]; then ./node_modules/.bin/framework_build ' + env + '; fi"', 'call framework_build script');
+
   try {  // check config syntax
     const config = path.join(process.cwd(), 'out', 'release', 'config', 'config.js');
     if (fs.existsSync(config)) {
