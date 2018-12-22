@@ -1,6 +1,6 @@
 {
   "name": "honeycomb-cli",
-  "version": "0.2.23",
+  "version": "0.2.24",
   "description": "honeycomb command line tools",
   "bin": {
     "honeycomb": "./bin/honeycomb",
@@ -8,7 +8,7 @@
   },
   "preferGlobal": true,
   "dependencies": {
-    "api-annotation": "1.0.0-beta.2",
+    "api-annotation": "1.0.0",
     "chalk": "~2.1.0",
     "commander": "~2.11.0",
     "esminify": "3.0.5",
