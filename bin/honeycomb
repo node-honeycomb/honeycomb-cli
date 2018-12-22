@@ -14,6 +14,7 @@ var os = require('os');
 var path = require('path');
 // var checkVersion = require('../lib/check_versions');
 
+// logo maker: http://patorjk.com/software/taag/#p=display&h=1&f=Slant&t=honeycomb
 let logo =
 `
       __                                                        __
