@@ -11,7 +11,7 @@
   },
   "preferGlobal": true,
   "dependencies": {
-    "api-annotation": "^1.0.1",
+    "api-annotation": "^1.0.2",
     "chalk": "~2.1.0",
     "commander": "~2.11.0",
     "esminify": "3.0.5",
