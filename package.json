@@ -6,6 +6,9 @@
     "honeycomb": "./bin/honeycomb",
     "hc": "./bin/honeycomb"
   },
+  "scripts": {
+    "eslint": "eslint --ext .js --ext .jsx --ignore-path .gitignore ."
+  },
   "preferGlobal": true,
   "dependencies": {
     "api-annotation": "^1.0.1",
