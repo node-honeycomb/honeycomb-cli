@@ -14,6 +14,10 @@ var os = require('os');
 var path = require('path');
 // var checkVersion = require('../lib/check_versions');
 
+if (/\/hc$/.test(process.argv[1])) {
+  process.argv[1] = process.argv[1].replace(/\/hc$/, '/honeycomb');
+}
+
 // logo maker: http://patorjk.com/software/taag/#p=display&h=1&f=Slant&t=honeycomb
 let logo =
 `
