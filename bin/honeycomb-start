@@ -31,6 +31,7 @@ program
   .option('-p --port [port]', '指定端口号')
   .option('-o --open [domain]', '打开浏览器窗口')
   .option('--inspect', 'start with inspect mod')
+  .option('--inspect-brk', 'start with inspect break mod')
   .parse(process.argv);
 
 const dir = process.cwd();
@@ -65,6 +66,11 @@ function fork(p, ignoreOpen) {
   if (program.inspect) {
     args.unshift('--inspect');
   }
+
+  if (program.inspectBrk) {
+    args.unshift('--inspect-brk');
+  }
+
   let cc = cp.spawn(process.argv[0],
     args,
     {
@@ -84,7 +90,7 @@ function fork(p, ignoreOpen) {
     fork(p, true);
   });
 
-  child =  cc;
+  child = cc;
 }
 
 fork(path.join(__dirname, '../lib/start.js'));
