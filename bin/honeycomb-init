@@ -73,6 +73,7 @@ const init = async () => {
     file: filename,
     C: dir
   });
+
   await unLink(filename);
   postInit(dir);
   log.info('init success');
