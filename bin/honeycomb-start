@@ -29,6 +29,7 @@ try {
 
 program
   .option('-p --port [port]', '指定端口号')
+  .option('-h --host [host]', '指定host')
   .option('-o --open [domain]', '打开浏览器窗口')
   .option('--inspect', 'start with inspect mod')
   .option('--inspect-brk', 'start with inspect break mod')
@@ -54,6 +55,7 @@ env.HC_APP_CONFIG = JSON.stringify({
 
 let port = program.port;
 let open = program.open;
+let host = program.host;
 
 
 function fork(p, ignoreOpen) {
@@ -61,7 +63,8 @@ function fork(p, ignoreOpen) {
     p,
     '--color',
     `${port}`,
-    ignoreOpen ? false : open
+    ignoreOpen ? false : open,
+    host || ''
   ];
   if (program.inspect) {
     args.unshift('--inspect');
