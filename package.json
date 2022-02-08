@@ -15,7 +15,7 @@
     "api-annotation": "^1.0.2",
     "chalk": "~2.1.0",
     "commander": "~2.11.0",
-    "esminify": "^4.0.0",
+    "esminify": "4.0.5",
     "filewatcher": "^3.0.1",
     "fs-extra": "^6.0.1",
     "ip": "~1.1.5",

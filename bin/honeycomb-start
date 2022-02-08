@@ -33,6 +33,7 @@ program
   .option('-o --open [domain]', '打开浏览器窗口')
   .option('--inspect', 'start with inspect mod')
   .option('--inspect-brk', 'start with inspect break mod')
+  .option('--ignore-auto-router', 'IGNOREAUTOGENROUTER')
   .parse(process.argv);
 
 const dir = process.cwd();
@@ -96,7 +97,14 @@ function fork(p, ignoreOpen) {
   child = cc;
 }
 
-fork(path.join(__dirname, '../lib/start.js'));
+
+if (program.ignoreAutoRouter) {
+  process.env['IGNOREAUTOGENROUTER'] = true;
+}
+
+fork(path.join(__dirname, '../lib/start.js'), {
+  env: process.env
+});
 
 process.on('exit', function () {
   child && child.kill('SIGHUP');
