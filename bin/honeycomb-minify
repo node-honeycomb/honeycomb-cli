@@ -14,7 +14,9 @@ console.log('Minifying code.');  // eslint-disable-line
 try {
   var minify = require(path.join(__dirname, '../lib/minify.js'));
   minify.minify({input: program.input}, () => {
-    process.exit(0);
+    minify.minifyNodeModules(() => {
+      process.exit(0);
+    });
   });
 } catch (e) {
   console.error('Error: minify error: ', e.stack || e.message || e); //eslint-disable-line

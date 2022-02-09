@@ -54,6 +54,18 @@ honeycomb config KEY VALUE
 
 + currently, only `registry` config is supported
 
+### minify config
+
+package.json
+
+```json
+{
+  "minify": {
+    "ignoreNodeModules": false // 跳过node_modules目录
+  }
+}
+```
+
 ### Others
 
 You can use `honeycomb --help` and `honeycomb COMMAND --help` to get full commands and full options.
