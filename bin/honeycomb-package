@@ -129,6 +129,26 @@ const pack = async () => {
   var buildNo = pkg.build || 1;
   var fileName = pkg.name + '_' + version + '_' + buildNo;
 
+  if (/.jar$/.test(pkg.main)) {
+    if (pkg.honeycomb) {
+      if (pkg.honeycomb.service) {
+        let flag = false;
+        pkg.honeycomb.service.argv.forEach((item) => {
+          if (item === 'org.springframework.boot.loader.JarLauncher') {
+            flag = true;
+          }
+        })
+
+        if (flag && pkg.honeycomb.service.cwd && !fs.existsSync(path.join(dir, pkg.honeycomb.service.cwd))) {
+           console.log('-----ERROR----------------')
+           console.log("package.json配置错误，java应用配置请查阅honeycomb文档");
+           console.log('---------------------------')
+           process.exit(2);
+        }
+      }
+    }
+  }
+
   log.info('move file to ', fileName);
   // 转移文件
   const outDir = path.join(process.cwd(), 'out');
