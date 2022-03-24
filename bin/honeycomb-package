@@ -141,7 +141,9 @@ const pack = async () => {
 
         if (flag && pkg.honeycomb.service.cwd && !fs.existsSync(path.join(dir, pkg.honeycomb.service.cwd))) {
            console.log('-----ERROR----------------')
-           console.log("package.json配置错误，java应用配置请查阅honeycomb文档");
+           console.log('main指向jar，但实际启动需要先解压jar，包不准确，请在Makefile relese中解压好jar');
+           console.log(`> cd out/release && unzip -o ${pkg.main} -d ${pkg.main.replace(/\.jar$/, '')}`);
+           console.log('package.json配置错误，java应用配置请查阅honeycomb文档');
            console.log('---------------------------')
            process.exit(2);
         }
