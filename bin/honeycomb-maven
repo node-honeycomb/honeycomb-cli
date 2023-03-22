@@ -1,0 +1,105 @@
+#!/usr/bin/env node
+'use strict';
+
+const fs = require("fs");
+const path = require('path');
+const program = require('commander');
+
+// TODO: is this appropriate?
+const defaultDirPrefix='/home/admin'
+
+program
+  .parse(process.argv);
+
+if (!program.args[0]) {
+  console.log('please provide an appName, usually it is your artifactId');
+  process.exit(1);
+}
+
+let appName = program.args[0];
+
+const pomFile = path.join(process.cwd(), 'pom.xml')
+
+if (!fs.existsSync(pomFile)) {
+  console.error('Current directory is not a Java Maven project');
+  process.exit(1);
+}
+
+let writed = false;
+
+function writeFile(fileName, content) {
+  if (fs.existsSync(fileName)) {
+      console.error(`File: ${fileName} already exists, skip writing`);
+      return;
+  }
+  fs.writeFileSync(fileName, content)
+  writed = true;
+  console.log(`File: ${fileName} writes successfully`);
+}
+
+var packageJson = `{
+  "name":"${appName}",
+  "version":"0.0.1",
+  "build": "1",
+  "main": "./${appName}",
+  "honeycomb": {
+    "processorNum": 1,
+    "env": {
+      "JAVA_OPTS": "-server -Xms2g -Xmx2g -Xmn1g -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m -XX:MaxDirectMemorySize=1g -XX:SurvivorRatio=10 -XX:+UseConcMarkSweepGC -XX:CMSMaxAbortablePrecleanTime=5000 -XX:+CMSClassUnloadingEnabled -XX:CMSInitiatingOccupancyFraction=80 -XX:+UseCMSInitiatingOccupancyOnly -XX:+ExplicitGCInvokesConcurrent -Dsun.rmi.dgc.server.gcInterval=2592000000 -Dsun.rmi.dgc.client.gcInterval=2592000000 -XX:ParallelGCThreads=2 -Xloggc:${defaultDirPrefix}/honeycomb/logs/java-gc.log -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${defaultDirPrefix}/honeycomb/logs/java.hprof"
+    },
+    "service": {
+      "router":"/",
+      "exec": "java",
+      "cwd": "./${appName}/",
+      "argv": [
+        "-Djava.awt.headless=true",
+        "-Dsun.net.client.defaultConnectTimeout=10000",
+        "-Dsun.net.client.defaultReadTimeout=30000",
+        "-Dfile.encoding=UTF-8",
+        "-Dproject.name=${appName}",
+        "-Dmanagement.info.build.mode=full",
+        "-Dspring.profiles.active=production",
+        "-DLOG_PATH=${defaultDirPrefix}/honeycomb/logs/${appName}/",
+        "-Dspring.config.location=${defaultDirPrefix}/honeycomb/conf/application.properties",
+        "org.springframework.boot.loader.JarLauncher"
+      ],
+      "type": "http",
+      "upstream":"port"
+    }
+  }
+}
+`
+
+var makefile = `PKG_NAME = $(shell cat package.json | awk -F '"' '/name" *: *"/{print $$4}')
+PKG_VERSION = $(shell cat package.json | awk -F '"' '/version" *: *"/{print $$4}')
+PKG_BUILD = $(shell cat package.json | awk -F '"' '/build" *: *"/{print $$4}')
+
+package:
+	@mvn clean package -Dmaven.test.skip=true -Pproduction
+	@rm  -rf ./out
+	@mkdir -p ./out/$(PKG_NAME)_$(PKG_VERSION)_$(PKG_BUILD)
+	@cp ./target/$(PKG_NAME).jar ./out/$(PKG_NAME)_$(PKG_VERSION)_$(PKG_BUILD)
+	@unzip -o -qq ./out/$(PKG_NAME)_$(PKG_VERSION)_$(PKG_BUILD)/$(PKG_NAME).jar -d ./out/$(PKG_NAME)_$(PKG_VERSION)_$(PKG_BUILD)/$(PKG_NAME) || exit 0
+	@rm -rf ./out/$(PKG_NAME)_$(PKG_VERSION)_$(PKG_BUILD)/$(PKG_NAME).jar
+	@cp ./package.json ./out/$(PKG_NAME)_$(PKG_VERSION)_$(PKG_BUILD)
+	@cd out && tar zcf $(PKG_NAME)_$(PKG_VERSION)_$(PKG_BUILD).tgz $(PKG_NAME)_$(PKG_VERSION)_$(PKG_BUILD)
+
+release:
+	@mvn clean package -Dmaven.test.skip=true -Pproduction
+	@rm  -rf ./out
+	@mkdir -p ./out/release
+	@cp ./target/$(PKG_NAME).jar ./out/release
+	@unzip -o -qq ./out/release/$(PKG_NAME).jar -d ./out/release/$(PKG_NAME) || exit 0
+	@rm -rf ./out/release/$(PKG_NAME).jar
+	@cp ./package.json ./out/release
+
+.PHONY:  release
+`
+
+writeFile('package.json', packageJson)
+writeFile('Makefile', makefile)
+if (writed) {
+  console.log('Done. You mey need to modify Makefile and package.json to fit your needs.');
+} else {
+  console.log('Done. Nothing changed.');
+}

@@ -78,5 +78,6 @@ program
   .command('pwd [password]', 'generate a password hash')
   .command('token', 'generate a random token')
   .command('config', 'get or set global config')
+  .command('maven', 'adapter Java Maven project (mainly Spring Boot) to honeycomb')
   .option('-v, --version', 'output the version number', printVersion)
   .parse(process.argv);
